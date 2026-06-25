@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Verteilzentrum - Leitstand</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #ffcc00; background: #333; padding: 15px; border-radius: 8px; text-align: center; margin-top: 0; }
+        .scan-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        input, select, button { padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 16px; }
+        input { flex: 1; }
+        button { background: #ffcc00; color: #333; font-weight: bold; cursor: pointer; border: none; }
+        button:hover { background: #e6b800; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #333; color: white; }
+        .status-badge { padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 12px; }
+        .status-inbound { background: #ffeeba; color: #856404; }
+        .status-sorting { background: #b8daff; color: #004085; }
+        .status-outbound { background: #c3e6cb; color: #155724; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📯 POST VERTEILZENTRUM – LEITSTAND</h1>
+    
+    <div class="scan-box">
+        <input type="text" id="trackingInput" placeholder="Sendungsnummer scannen..." autofocus>
+        <select id="statusSelect">
+            <option value="INBOUND (Im Sortierzentrum)">INBOUND (Eingang)</option>
+            <option value="SORTING (In Sortierung)">SORTING (Sortierung)</option>
+            <option value="OUTBOUND (In Zustellung)">OUTBOUND (Zustellung)</option>
+        </select>
+        <button onclick="updatePaket()">Update Status</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Zeitstempel</th>
+                <th>Sendungsnummer</th>
+                <th>Aktueller Status</th>
+            </tr>
+        </thead>
+        <tbody id="logTableBody">
+            </tbody>
+    </table>
+</div>
+
+<script>
+    // Wir nutzen den LocalStorage des Browsers als Mini-Datenbank
+    function updatePaket() {
+        const nr = document.getElementById('trackingInput').value.trim();
+        const status = document.getElementById('statusSelect').value;
+        const zeit = new Date().toLocaleTimeString();
+
+        if (nr === "") return;
+
+        // Paket in der "Datenbank" speichern
+        let pakete = JSON.parse(localStorage.getItem('post_db')) || {};
+        pakete[nr] = { status: status, zeit: zeit };
+        localStorage.setItem('post_db', JSON.stringify(pakete));
+
+        // Tabelle aktualisieren
+        renderTable();
+
+        // Input für den nächsten Scan leeren und fokussieren
+        document.getElementById('trackingInput').value = "";
+        document.getElementById('trackingInput').focus();
+    }
+
+    function renderTable() {
+        const pakete = JSON.parse(localStorage.getItem('post_db')) || {};
+        const tbody = document.getElementById('logTableBody');
+        tbody.innerHTML = "";
+
+        for (const [nr, data] of Object.entries(pakete)) {
+            const row = `<tr>
+                <td>${data.zeit}</td>
+                <td><strong>${nr}</strong></td>
+                <td><span class="status-badge status-inbound">${data.status}</span></td>
+            </tr>`;
+            tbody.innerHTML += row;
+        }
+    }
+
+    // Erlaubt das Abschicken mit der Enter-Taste (wichtig für Scanner!)
+    document.getElementById('trackingInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            updatePaket();
+        }
+    });
+
+    // Beim Start alte Daten laden
+    renderTable();
+</script>
+
+</body>
+</html>
