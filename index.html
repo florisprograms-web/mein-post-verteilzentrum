@@ -3,100 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post Verteilzentrum - Leitstand</title>
+    <title>Post Leitstand V5</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1 { color: #ffcc00; background: #333; padding: 15px; border-radius: 8px; text-align: center; margin-top: 0; }
-        .scan-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        input, select, button { padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 16px; }
-        input { flex: 1; }
-        button { background: #ffcc00; color: #333; font-weight: bold; cursor: pointer; border: none; }
+        body { font-family: 'Courier New', Courier, monospace; background: #1a1a1a; color: #00ff00; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: #262626; padding: 25px; border: 3px solid #ffcc00; border-radius: 8px; }
+        h1 { text-align: center; color: #ffcc00; border-bottom: 2px dashed #ffcc00; padding-bottom: 10px; margin-top: 0; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: #141414; padding: 15px; border-radius: 5px; text-align: center; border: 1px solid #444; }
+        .stat-card h3 { margin: 0; color: #888; font-size: 14px; }
+        .stat-card p { margin: 10px 0 0 0; font-size: 24px; font-weight: bold; color: #ffcc00; }
+        .scan-box { display: flex; gap: 10px; background: #141414; padding: 15px; border-radius: 5px; border: 1px solid #444; }
+        input, select, button { background: #333; color: #fff; padding: 12px; border: 1px solid #555; border-radius: 4px; font-size: 16px; font-family: inherit; }
+        input { flex: 1; border-color: #ffcc00; color: #ffcc00; }
+        button { background: #ffcc00; color: #000; font-weight: bold; cursor: pointer; border: none; }
         button:hover { background: #e6b800; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background: #333; color: white; }
-        .status-badge { padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 12px; }
-        .status-inbound { background: #ffeeba; color: #856404; }
-        .status-sorting { background: #b8daff; color: #004085; }
-        .status-outbound { background: #c3e6cb; color: #155724; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #141414; }
+        th, td { padding: 12px; text-align: left; border: 1px solid #333; }
+        th { background: #ffcc00; color: #000; }
+        .clear-btn { background: #ff3333; color: white; float: right; margin-top: 10px; padding: 8px 15px; font-size: 12px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📯 POST VERTEILZENTRUM – LEITSTAND</h1>
+    <h1>📯 HUB-VILLACH: MAIN LEITSTAND V5</h1>
     
+    <div class="stats-grid">
+        <div class="stat-card"><h3>PAKETE GESAMT</h3><p id="stat-total">0</p></div>
+        <div class="stat-card"><h3>IM SORTIERZENTRUM</h3><p id="stat-inbound">0</p></div>
+        <div class="stat-card"><h3>IN ZUSTELLUNG</h3><p id="stat-outbound">0</p></div>
+    </div>
+
     <div class="scan-box">
-        <input type="text" id="trackingInput" placeholder="Sendungsnummer scannen..." autofocus>
+        <input type="text" id="trackingInput" placeholder="BARCODE SCANNEN / EINGEBEN..." autofocus>
         <select id="statusSelect">
-            <option value="INBOUND (Im Sortierzentrum)">INBOUND (Eingang)</option>
-            <option value="SORTING (In Sortierung)">SORTING (Sortierung)</option>
+            <option value="INBOUND (Sortierzentrum Villach)">INBOUND (Eingang)</option>
+            <option value="SORTING (Regalplatz zugewiesen)">SORTING (Sortierung)</option>
             <option value="OUTBOUND (In Zustellung)">OUTBOUND (Zustellung)</option>
+            <option value="DELIVERED (Erfolgreich Zugestellt)">DELIVERED (Zustellt)</option>
         </select>
-        <button onclick="updatePaket()">Update Status</button>
+        <button onclick="updatePaket()">STATUS UPDATE</button>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>Zeitstempel</th>
-                <th>Sendungsnummer</th>
-                <th>Aktueller Status</th>
+                <th>ZEIT</th>
+                <th>SENDUNGSNUMMER</th>
+                <th>LOG-STATUS</th>
             </tr>
         </thead>
-        <tbody id="logTableBody">
-            </tbody>
+        <tbody id="logTableBody"></tbody>
     </table>
+    
+    <button class="clear-btn" onclick="clearDb()">DATENBANK ZURÜCKSETZEN</button>
 </div>
 
 <script>
-    // Wir nutzen den LocalStorage des Browsers als Mini-Datenbank
+    // Audio-Synthesizer für echten Handscanner-Sound!
+    function playBeep(type) {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        if (type === 'success') {
+            osc.frequency.setValueAtTime(1200, ctx.currentTime);
+            gain.gain.setValueAtTime(0.1, ctx.currentTime);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.08);
+        } else {
+            osc.frequency.setValueAtTime(300, ctx.currentTime);
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.25);
+        }
+    }
+
     function updatePaket() {
         const nr = document.getElementById('trackingInput').value.trim();
         const status = document.getElementById('statusSelect').value;
         const zeit = new Date().toLocaleTimeString();
 
-        if (nr === "") return;
+        if (nr === "") { playBeep('error'); return; }
 
-        // Paket in der "Datenbank" speichern
-        let pakete = JSON.parse(localStorage.getItem('post_db')) || {};
+        let pakete = JSON.parse(localStorage.getItem('post_db_v5')) || {};
         pakete[nr] = { status: status, zeit: zeit };
-        localStorage.setItem('post_db', JSON.stringify(pakete));
+        localStorage.setItem('post_db_v5', JSON.stringify(pakete));
 
-        // Tabelle aktualisieren
-        renderTable();
-
-        // Input für den nächsten Scan leeren und fokussieren
+        playBeep('success');
         document.getElementById('trackingInput').value = "";
         document.getElementById('trackingInput').focus();
+        renderSystem();
     }
 
-    function renderTable() {
-        const pakete = JSON.parse(localStorage.getItem('post_db')) || {};
+    function renderSystem() {
+        const pakete = JSON.parse(localStorage.getItem('post_db_v5')) || {};
         const tbody = document.getElementById('logTableBody');
         tbody.innerHTML = "";
 
+        let total = 0, inbound = 0, outbound = 0;
+
         for (const [nr, data] of Object.entries(pakete)) {
+            total++;
+            if(data.status.includes("INBOUND") || data.status.includes("SORTING")) inbound++;
+            if(data.status.includes("OUTBOUND")) outbound++;
+
             const row = `<tr>
                 <td>${data.zeit}</td>
-                <td><strong>${nr}</strong></td>
-                <td><span class="status-badge status-inbound">${data.status}</span></td>
+                <td><strong style="color:#ffcc00;">${nr}</strong></td>
+                <td>${data.status}</td>
             </tr>`;
             tbody.innerHTML += row;
         }
+
+        document.getElementById('stat-total').innerText = total;
+        document.getElementById('stat-inbound').innerText = inbound;
+        document.getElementById('stat-outbound').innerText = outbound;
     }
 
-    // Erlaubt das Abschicken mit der Enter-Taste (wichtig für Scanner!)
-    document.getElementById('trackingInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            updatePaket();
-        }
-    });
-
-    // Beim Start alte Daten laden
-    renderTable();
+    function clearDb() { if(confirm("Datenbank löschen?")) { localStorage.clear(); renderSystem(); } }
+    document.getElementById('trackingInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') updatePaket(); });
+    renderSystem();
 </script>
-
 </body>
 </html>
