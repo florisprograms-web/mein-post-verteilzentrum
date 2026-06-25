@@ -3,82 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post Leitstand V5</title>
+    <title>Post Enterprise Leitstand V6</title>
     <style>
-        body { font-family: 'Courier New', Courier, monospace; background: #1a1a1a; color: #00ff00; margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; background: #262626; padding: 25px; border: 3px solid #ffcc00; border-radius: 8px; }
-        h1 { text-align: center; color: #ffcc00; border-bottom: 2px dashed #ffcc00; padding-bottom: 10px; margin-top: 0; }
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: #141414; padding: 15px; border-radius: 5px; text-align: center; border: 1px solid #444; }
-        .stat-card h3 { margin: 0; color: #888; font-size: 14px; }
-        .stat-card p { margin: 10px 0 0 0; font-size: 24px; font-weight: bold; color: #ffcc00; }
-        .scan-box { display: flex; gap: 10px; background: #141414; padding: 15px; border-radius: 5px; border: 1px solid #444; }
-        input, select, button { background: #333; color: #fff; padding: 12px; border: 1px solid #555; border-radius: 4px; font-size: 16px; font-family: inherit; }
+        body { font-family: 'Courier New', Courier, monospace; background: #121212; color: #00ff00; margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* SIDE-MENU */
+        .sidebar { width: 280px; background: #1a1a1a; border-right: 3px solid #ffcc00; display: flex; flex-direction: column; padding: 20px 0; box-sizing: border-box; }
+        .sidebar-brand { text-align: center; color: #ffcc00; font-size: 20px; font-weight: bold; margin-bottom: 30px; padding: 0 15px; }
+        .menu-section { color: #888; font-size: 11px; text-transform: uppercase; padding: 10px 20px 5px 20px; letter-spacing: 1px; }
+        .hub-btn { background: none; border: none; color: #aaa; width: 100%; text-align: left; padding: 12px 20px; font-size: 14px; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .hub-btn:hover { background: #262626; color: #fff; }
+        .hub-btn.active { background: #ffcc00; color: #000; font-weight: bold; }
+        .settings-btn { margin-top: auto; border-top: 1px solid #333; padding-top: 15px; }
+
+        /* MAIN CONTENT AREA */
+        .main-content { flex: 1; padding: 25px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; }
+        .header-panel { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px dashed #ffcc00; padding-bottom: 15px; margin-bottom: 25px; }
+        .header-panel h1 { margin: 0; color: #ffcc00; font-size: 24px; }
+        .current-hub-badge { background: #333; color: #ffcc00; padding: 5px 12px; border: 1px solid #ffcc00; border-radius: 4px; font-size: 12px; }
+
+        /* STATISTIKEN ZUERST (Laut Benutzervorgabe) */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: #1a1a1a; padding: 15px; border-radius: 5px; text-align: center; border: 1px solid #333; }
+        .stat-card h3 { margin: 0; color: #888; font-size: 12px; text-transform: uppercase; }
+        .stat-card p { margin: 10px 0 0 0; font-size: 26px; font-weight: bold; color: #ffcc00; }
+
+        /* ARBEITSBEREICH */
+        .work-container { background: #1a1a1a; padding: 20px; border-radius: 6px; border: 1px solid #333; margin-bottom: 25px; }
+        .scan-box { display: flex; gap: 10px; }
+        input, select, .action-btn { background: #262626; color: #fff; padding: 12px; border: 1px solid #444; border-radius: 4px; font-size: 16px; font-family: inherit; }
         input { flex: 1; border-color: #ffcc00; color: #ffcc00; }
-        button { background: #ffcc00; color: #000; font-weight: bold; cursor: pointer; border: none; }
-        button:hover { background: #e6b800; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #141414; }
-        th, td { padding: 12px; text-align: left; border: 1px solid #333; }
-        th { background: #ffcc00; color: #000; }
-        .clear-btn { background: #ff3333; color: white; float: right; margin-top: 10px; padding: 8px 15px; font-size: 12px; }
+        .action-btn { background: #ffcc00; color: #000; font-weight: bold; cursor: pointer; border: none; }
+        .action-btn:hover { background: #e6b800; }
+
+        /* TABELLE */
+        table { width: 100%; border-collapse: collapse; background: #141414; }
+        th, td { padding: 12px; text-align: left; border: 1px solid #222; }
+        th { background: #262626; color: #ffcc00; font-size: 12px; text-transform: uppercase; }
+        .clear-btn { background: #ff3333; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-family: inherit; margin-top: 15px; align-self: flex-start; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>📯 HUB-VILLACH: MAIN LEITSTAND V5</h1>
-    
-    <div class="stats-grid">
-        <div class="stat-card"><h3>PAKETE GESAMT</h3><p id="stat-total">0</p></div>
-        <div class="stat-card"><h3>IM SORTIERZENTRUM</h3><p id="stat-inbound">0</p></div>
-        <div class="stat-card"><h3>IN ZUSTELLUNG</h3><p id="stat-outbound">0</p></div>
+    <div class="sidebar">
+        <div class="sidebar-brand">📯 POST MATRIX V6</div>
+        
+        <div class="menu-section">Verteilzentren (Hubs)</div>
+        <button class="hub-btn active" id="btn-hub1" onclick="switchHub('hub1', 'ZENTRAL-HUB VILLACH')">🏢 Hub Villach</button>
+        <button class="hub-btn" id="btn-hub2" onclick="switchHub('hub2', 'VERTEILZENTRUM KLAGENFURT')">🏢 Hub Klagenfurt</button>
+        <button class="hub-btn" id="btn-hub3" onclick="switchHub('hub3', 'HAUPT-DEPOT WIEN')">🏢 Haupt-Depot Wien</button>
+        
+        <div class="menu-section settings-btn">System-Einstellungen</div>
+        <button class="hub-btn" onclick="alert('Audio-Synthesizer: Aktiv\nMatrix-Sync: Bereit')">⚙️ Terminal-Konfig</button>
     </div>
 
-    <div class="scan-box">
-        <input type="text" id="trackingInput" placeholder="BARCODE SCANNEN / EINGEBEN..." autofocus>
-        <select id="statusSelect">
-            <option value="INBOUND (Sortierzentrum Villach)">INBOUND (Eingang)</option>
-            <option value="SORTING (Regalplatz zugewiesen)">SORTING (Sortierung)</option>
-            <option value="OUTBOUND (In Zustellung)">OUTBOUND (Zustellung)</option>
-            <option value="DELIVERED (Erfolgreich Zugestellt)">DELIVERED (Zustellt)</option>
-        </select>
-        <button onclick="updatePaket()">STATUS UPDATE</button>
-    </div>
+    <div class="main-content">
+        <div class="header-panel">
+            <h1 id="hub-title">ZENTRAL-HUB VILLACH</h1>
+            <span class="current-hub-badge" id="hub-badge">HUB: hub1</span>
+        </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>ZEIT</th>
-                <th>SENDUNGSNUMMER</th>
-                <th>LOG-STATUS</th>
-            </tr>
-        </thead>
-        <tbody id="logTableBody"></tbody>
-    </table>
-    
-    <button class="clear-btn" onclick="clearDb()">DATENBANK ZURÜCKSETZEN</button>
-</div>
+        <div class="stats-grid">
+            <div class="stat-card"><h3>Pakete Gesamt</h3><p id="stat-total">0</p></div>
+            <div class="stat-card"><h3>Im Inbound</h3><p id="stat-inbound">0</p></div>
+            <div class="stat-card"><h3>In Zustellung</h3><p id="stat-outbound">0</p></div>
+            <div class="stat-card"><h3>Ausgeliefert</h3><p id="stat-delivered">0</p></div>
+        </div>
+
+        <div class="work-container">
+            <div class="scan-box">
+                <input type="text" id="trackingInput" placeholder="PAKET-BARCODE EINSCANNEN..." autofocus>
+                <select id="statusSelect">
+                    <option value="INBOUND (Sortierung läuft)">INBOUND (Eingang)</option>
+                    <option value="SORTING (Regal-Fach Alpha)">SORTING (Lagerung)</option>
+                    <option value="OUTBOUND (Auf Zustell-Route)">OUTBOUND (Zustellung)</option>
+                    <option value="DELIVERED (Zustellung Quittiert)">DELIVERED (Erledigt)</option>
+                </select>
+                <button class="action-btn" onclick="updatePaket()">SCAN BESTÄTIGEN</button>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Zeitstempel</th>
+                    <th>Sendungsnummer</th>
+                    <th>Status-Protokoll</th>
+                </tr>
+            </thead>
+            <tbody id="logTableBody"></tbody>
+        </table>
+        
+        <button class="clear-btn" onclick="clearCurrentHub()">Diesen Hub zurücksetzen</button>
+    </div>
 
 <script>
-    // Audio-Synthesizer für echten Handscanner-Sound!
+    let currentHubId = 'hub1';
+
+    // Beeper für echten Scanner-Sound
     function playBeep(type) {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.setValueAtTime(type === 'success' ? 1100 : 320, ctx.currentTime);
+        gain.gain.setValueAtTime(type === 'success' ? 0.08 : 0.15, ctx.currentTime);
+        osc.start(); osc.stop(ctx.currentTime + (type === 'success' ? 0.07 : 0.2));
+    }
+
+    function switchHub(hubId, hubName) {
+        currentHubId = hubId;
+        document.getElementById('hub-title').innerText = hubName;
+        document.getElementById('hub-badge').innerText = `HUB: ${hubId}`;
         
-        if (type === 'success') {
-            osc.frequency.setValueAtTime(1200, ctx.currentTime);
-            gain.gain.setValueAtTime(0.1, ctx.currentTime);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.08);
-        } else {
-            osc.frequency.setValueAtTime(300, ctx.currentTime);
-            gain.gain.setValueAtTime(0.2, ctx.currentTime);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.25);
-        }
+        // Buttons Zustand anpassen
+        document.querySelectorAll('.hub-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`btn-${hubId}`).classList.add('active');
+        
+        renderSystem();
     }
 
     function updatePaket() {
@@ -88,9 +130,11 @@
 
         if (nr === "") { playBeep('error'); return; }
 
-        let pakete = JSON.parse(localStorage.getItem('post_db_v5')) || {};
-        pakete[nr] = { status: status, zeit: zeit };
-        localStorage.setItem('post_db_v5', JSON.stringify(pakete));
+        let allHubs = JSON.parse(localStorage.getItem('multi_hub_db')) || {};
+        if (!allHubs[currentHubId]) allHubs[currentHubId] = {};
+        
+        allHubs[currentHubId][nr] = { status: status, zeit: zeit };
+        localStorage.setItem('multi_hub_db', JSON.stringify(allHubs));
 
         playBeep('success');
         document.getElementById('trackingInput').value = "";
@@ -99,16 +143,18 @@
     }
 
     function renderSystem() {
-        const pakete = JSON.parse(localStorage.getItem('post_db_v5')) || {};
+        const allHubs = JSON.parse(localStorage.getItem('multi_hub_db')) || {};
+        const currentHubData = allHubs[currentHubId] || {};
         const tbody = document.getElementById('logTableBody');
         tbody.innerHTML = "";
 
-        let total = 0, inbound = 0, outbound = 0;
+        let total = 0, inbound = 0, outbound = 0, delivered = 0;
 
-        for (const [nr, data] of Object.entries(pakete)) {
+        for (const [nr, data] of Object.entries(currentHubData)) {
             total++;
             if(data.status.includes("INBOUND") || data.status.includes("SORTING")) inbound++;
             if(data.status.includes("OUTBOUND")) outbound++;
+            if(data.status.includes("DELIVERED")) delivered++;
 
             const row = `<tr>
                 <td>${data.zeit}</td>
@@ -121,9 +167,18 @@
         document.getElementById('stat-total').innerText = total;
         document.getElementById('stat-inbound').innerText = inbound;
         document.getElementById('stat-outbound').innerText = outbound;
+        document.getElementById('stat-delivered').innerText = delivered;
     }
 
-    function clearDb() { if(confirm("Datenbank löschen?")) { localStorage.clear(); renderSystem(); } }
+    function clearCurrentHub() {
+        if(confirm("Daten für dieses Verteilzentrum löschen?")) {
+            let allHubs = JSON.parse(localStorage.getItem('multi_hub_db')) || {};
+            delete allHubs[currentHubId];
+            localStorage.setItem('multi_hub_db', JSON.stringify(allHubs));
+            renderSystem();
+        }
+    }
+
     document.getElementById('trackingInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') updatePaket(); });
     renderSystem();
 </script>
